@@ -1,0 +1,29 @@
+buildscript {
+    apply from: file('gradle/buildscript.gradle'), to: buildscript
+}
+
+apply plugin: 'groovy'
+apply plugin: 'maven-publish'
+apply from: file('gradle/versioning.gradle')
+apply from: file('gradle/convention.gradle')
+
+group 'com.charlieknudsen'
+
+repositories {
+    mavenLocal()
+    jcenter()
+}
+
+dependencies {
+    compile 'org.apache.kafka:kafka_2.10:0.8.2.0'
+    compile "org.slf4j:slf4j-api:${slf4jVersion}"
+	compile "com.google.guava:guava:18.0"
+
+    testCompile "org.codehaus.groovy:groovy-all:${groovyVersion}"
+    testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
+    testRuntime 'cglib:cglib-nodep:2.2.2'
+    testRuntime 'org.objenesis:objenesis:1.2'
+	testRuntime 'ch.qos.logback:logback-classic:1.1.2'
+	testRuntime "org.slf4j:log4j-over-slf4j:${slf4jVersion}"
+	testRuntime "org.slf4j:jcl-over-slf4j:${slf4jVersion}"
+}

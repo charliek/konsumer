@@ -1,0 +1,40 @@
+
+sourceCompatibility = '1.7'
+targetCompatibility = '1.7'
+
+task wrapper(type: Wrapper) {
+	gradleVersion = "2.3"
+}
+
+task sourceJar(type: Jar) {
+	from sourceSets.main.allJava
+}
+
+publishing {
+	publications {
+		mavenJava(MavenPublication) {
+			from components.java
+			artifact sourceJar {
+				classifier "sources"
+			}
+		}
+	}
+}
+
+configurations.all {
+	resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+		exclude group: 'log4j', module: 'log4j'
+		if (details.requested.name == 'groovy') {
+			details.useTarget group: details.requested.group, name: 'groovy-all', version: groovyVersion
+		}
+		if (details.requested.name == 'groovy-all') {
+			details.useVersion groovyVersion
+		}
+		if (details.requested.name == 'slf4j-log4j12') {
+			details.useVersion slf4jVersion
+		}
+		if (details.requested.name == 'log4j') {
+			details.useTarget "org.slf4j:slf4j-log4j12:${slf4jVersion}"
+		}
+	}
+}

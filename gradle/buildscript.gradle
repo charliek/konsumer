@@ -1,0 +1,7 @@
+// Executed in context of buildscript
+repositories {
+    mavenLocal()
+    jcenter()
+}
+dependencies {
+}
