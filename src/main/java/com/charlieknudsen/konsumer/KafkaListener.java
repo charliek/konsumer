@@ -1,5 +1,7 @@
 package com.charlieknudsen.konsumer;
 
+import com.charlieknudsen.konsumer.util.QuietCallable;
+import com.charlieknudsen.konsumer.util.RunUtil;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import kafka.consumer.Consumer;
 import kafka.consumer.KafkaStream;
@@ -23,22 +25,35 @@ public class KafkaListener {
 
 	public KafkaListener(ListenerConfig config) {
 		this.config = config;
-		partitionExecutor = Executors.newFixedThreadPool(config.getPartitionThreads());
-
-		// Use custom thread pool for better logging and introspection
-		ThreadFactory messageThreadFactory = new ThreadFactoryBuilder()
-				.setNameFormat("KafkaConsumer-" + config.getTopic() + "-%d")
-				.setDaemon(true)
-				.build();
-
 		// Build custom executor so we control the factory and backing queue
-		processingExecutor = new ThreadPoolExecutor(
-				config.getProcessingThreads(), config.getProcessingThreads(),
-				0L, TimeUnit.MILLISECONDS,
-				new LinkedBlockingQueue<Runnable>(config.getProcessingQueueSize()),
-				messageThreadFactory);
+		// and get better thread names for logging
+		partitionExecutor = buildPartitionExecutor();
+		processingExecutor = buildConsumerExecutor();
 		consumer = Consumer.createJavaConsumerConnector(config.getConsumerConfig());
 		topic = config.getTopic();
+	}
+
+	private ExecutorService buildPartitionExecutor() {
+		ThreadFactory threadFactory = new ThreadFactoryBuilder()
+				.setNameFormat("KafkaPartition-" + config.getTopic() + "-%d")
+				.setDaemon(config.useDaemonThreads())
+				.build();
+		return Executors.newFixedThreadPool(config.getPartitionThreads(), threadFactory);
+	}
+
+	private ExecutorService buildConsumerExecutor() {
+		ThreadFactory messageThreadFactory = new ThreadFactoryBuilder()
+				.setNameFormat("KafkaConsumer-" + config.getTopic() + "-%d")
+				.setDaemon(config.useDaemonThreads())
+				.build();
+		return new ThreadPoolExecutor(
+			config.getProcessingThreads(),
+			config.getProcessingThreads(),
+			0L,
+			TimeUnit.MILLISECONDS,
+			new LinkedBlockingQueue<Runnable>(config.getProcessingQueueSize()),
+			messageThreadFactory
+		);
 	}
 
 	public void shutdown() {
@@ -66,5 +81,19 @@ public class KafkaListener {
 		for (KafkaStream stream : streams) {
 			partitionExecutor.submit(new MessageConsumer(stream, processingExecutor, config, processor));
 		}
+	}
+
+	/**
+	 * Run and then block the calling thread until shutdown. In place to make it easy to
+	 * consume in a main method and still exit cleanly.
+	 */
+	public void runAndBlock(MessageProcessor processor) {
+		run(processor);
+		RunUtil.blockForShutdown(new QuietCallable() {
+			@Override
+			public void call() {
+				shutdown();
+			}
+		});
 	}
 }

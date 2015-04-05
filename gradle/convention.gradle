@@ -6,21 +6,6 @@ task wrapper(type: Wrapper) {
 	gradleVersion = "2.3"
 }
 
-task sourceJar(type: Jar) {
-	from sourceSets.main.allJava
-}
-
-publishing {
-	publications {
-		mavenJava(MavenPublication) {
-			from components.java
-			artifact sourceJar {
-				classifier "sources"
-			}
-		}
-	}
-}
-
 configurations.all {
 	resolutionStrategy.eachDependency { DependencyResolveDetails details ->
 		exclude group: 'log4j', module: 'log4j'

@@ -1,11 +1,17 @@
 buildscript {
-    apply from: file('gradle/buildscript.gradle'), to: buildscript
+    repositories {
+        mavenLocal()
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.0'
+    }
 }
 
 apply plugin: 'groovy'
 apply plugin: 'maven-publish'
-apply from: file('gradle/versioning.gradle')
 apply from: file('gradle/convention.gradle')
+apply from: file('gradle/publish.gradle')
 
 group 'com.charlieknudsen'
 

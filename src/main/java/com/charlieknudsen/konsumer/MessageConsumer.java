@@ -2,6 +2,7 @@ package com.charlieknudsen.konsumer;
 
 import kafka.consumer.ConsumerIterator;
 import kafka.consumer.KafkaStream;
+import kafka.message.MessageAndMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,9 +52,9 @@ public class MessageConsumer implements Runnable, ExceptionHandler {
 	private MessageProcessor decorateProcessor(final MessageProcessor processor) {
 		return new MessageProcessor() {
 			@Override
-			public void processMessage(byte[] bytes) throws Exception {
+			public void processMessage(MessageAndMetadata<byte[], byte[]> message) throws Exception {
 				try {
-					processor.processMessage(bytes);
+					processor.processMessage(message);
 				} finally {
 					taskSemaphone.release();
 				}
@@ -74,15 +75,15 @@ public class MessageConsumer implements Runnable, ExceptionHandler {
 	public void run() {
 		ConsumerIterator<byte[], byte[]> it = stream.iterator();
 		while (it.hasNext()) {
-			byte[] bytes = it.next().message();
+			MessageAndMetadata<byte[], byte[]> messageAndMetadata = it.next();
 			try {
-				submitTask(new MessageEnvelope(processor, this, bytes));
+				submitTask(new MessageEnvelope(processor, this, messageAndMetadata));
 			} catch (Exception e) {
 				log.error("Unexpected exception occurred during message processing. Exiting.", e);
 				break;
 			}
 		}
-		log.debug("Shutting down listening thread");
+		log.warn("Shutting down listening thread");
 	}
 
 	@Override

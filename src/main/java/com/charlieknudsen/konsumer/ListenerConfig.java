@@ -14,6 +14,7 @@ public class ListenerConfig {
 	private final int processingThreads;
 	private final int processingQueueSize;
 	private final int tryCount;
+	private final boolean daemonThreads;
 	private final String topic;
 	private final Properties props;
 
@@ -24,6 +25,7 @@ public class ListenerConfig {
 		tryCount = builder.tryCount;
 		topic = builder.topic;
 		props = builder.props;
+		daemonThreads = builder.daemonThreads;
 	}
 
 	public int getProcessingThreads() {
@@ -44,6 +46,10 @@ public class ListenerConfig {
 
 	public String getTopic() {
 		return topic;
+	}
+
+	public boolean useDaemonThreads() {
+		return daemonThreads;
 	}
 
 	public ConsumerConfig getConsumerConfig() {
@@ -68,6 +74,7 @@ public class ListenerConfig {
 		private int tryCount = 2;
 		private String topic = "";
 		private Properties props = new Properties();
+		private boolean daemonThreads = false;
 
 		public Builder() {
 			// http://kafka.apache.org/08/configuration.html
@@ -103,6 +110,11 @@ public class ListenerConfig {
 
 		public Builder consumerGroup(String name) {
 			props.put("group.id", name);
+			return this;
+		}
+
+		public Builder daemonThreads(boolean daemon) {
+			this.daemonThreads = daemon;
 			return this;
 		}
 
