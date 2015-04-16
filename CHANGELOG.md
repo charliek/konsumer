@@ -1,10 +1,23 @@
-## 0.0.3 (unreleased)
+## 0.0.4 (unreleased)
 
 BACKWARDS INCOMPATIBILITIES:
 
 FEATURES:
 
 IMPROVEMENTS:
+
+BUG FIXES:
+
+## 0.0.3 (April 16, 2015)
+
+BACKWARDS INCOMPATIBILITIES:
+
+FEATURES:
+* Added ability to have kafka listening thread process messages and not require consumer thread pool.
+
+IMPROVEMENTS:
+* Added findbugs.
+* Added a circle-ci build file.
 
 BUG FIXES:
 
