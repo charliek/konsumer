@@ -1,0 +1,16 @@
+machine:
+  java:
+    version:
+      oraclejdk7
+
+test:
+  override:
+    - ./gradlew check test jar
+  post:
+    - mkdir -p $CIRCLE_ARTIFACTS/{findbugs,jars}
+
+    # Archive the codenarc files
+    - cp build/reports/findbugs/*.html $CIRCLE_ARTIFACTS/findbugs/ || true
+
+    # Archive the junit files
+    - cp build/test-results/*.xml $CIRCLE_TEST_REPORTS/ || true

@@ -11,7 +11,7 @@ public class Main {
 
 	private void run() throws Exception {
 		log.info("Lets listen to Kafka!!!")
-		ListenerConfig config = new ListenerConfig.Builder()
+		ListenerConfig config = ListenerConfig.builder()
 				.partitionThreads(1)
 				.processingThreads(8)
 				.processingQueueSize(10)

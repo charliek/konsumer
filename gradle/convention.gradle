@@ -1,4 +1,20 @@
 
+apply plugin: 'findbugs'
+
+findbugs {
+	ignoreFailures = false
+	effort = "max"
+	reportLevel = "low"
+	sourceSets = [sourceSets.main]
+}
+
+tasks.withType(FindBugs) {
+	reports {
+		xml.enabled = false
+		html.enabled = true
+	}
+}
+
 sourceCompatibility = '1.7'
 targetCompatibility = '1.7'
 

@@ -1,5 +1,8 @@
 package com.charlieknudsen.konsumer;
 
+import com.charlieknudsen.konsumer.stream.StreamProcessor;
+import com.charlieknudsen.konsumer.stream.StreamProcessorFactory;
+import com.charlieknudsen.konsumer.stream.ThreadedStreamProcessor;
 import com.charlieknudsen.konsumer.util.QuietCallable;
 import com.charlieknudsen.konsumer.util.RunUtil;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -19,7 +22,7 @@ public class KafkaListener {
 
 	private final ConsumerConnector consumer;
 	private final ExecutorService partitionExecutor;
-	private final ExecutorService processingExecutor;
+	private final StreamProcessor streamProcessor;
 	private final String topic;
 	private final ListenerConfig config;
 
@@ -28,9 +31,10 @@ public class KafkaListener {
 		// Build custom executor so we control the factory and backing queue
 		// and get better thread names for logging
 		partitionExecutor = buildPartitionExecutor();
-		processingExecutor = buildConsumerExecutor();
+
 		consumer = Consumer.createJavaConsumerConnector(config.getConsumerConfig());
 		topic = config.getTopic();
+		streamProcessor = new StreamProcessorFactory(config).getProcessor();
 	}
 
 	private ExecutorService buildPartitionExecutor() {
@@ -41,35 +45,20 @@ public class KafkaListener {
 		return Executors.newFixedThreadPool(config.getPartitionThreads(), threadFactory);
 	}
 
-	private ExecutorService buildConsumerExecutor() {
-		ThreadFactory messageThreadFactory = new ThreadFactoryBuilder()
-				.setNameFormat("KafkaConsumer-" + config.getTopic() + "-%d")
-				.setDaemon(config.useDaemonThreads())
-				.build();
-		return new ThreadPoolExecutor(
-			config.getProcessingThreads(),
-			config.getProcessingThreads(),
-			0L,
-			TimeUnit.MILLISECONDS,
-			new LinkedBlockingQueue<Runnable>(config.getProcessingQueueSize()),
-			messageThreadFactory
-		);
-	}
-
 	public void shutdown() {
 		consumer.shutdown();
 		partitionExecutor.shutdown();
-		processingExecutor.shutdown();
 		try {
-			boolean completed = processingExecutor.awaitTermination(4, TimeUnit.SECONDS);
+			boolean completed = partitionExecutor.awaitTermination(config.getShutdownAwaitSeconds(), TimeUnit.SECONDS);
 			if (completed) {
-				log.info("Shutdown consumers of topic {} all messages processed", topic);
+				log.info("Shutdown partition consumers of topic {} all messages processed", topic);
 			} else {
-				log.warn("Shutdown consumers of topic {}. Some messages left unprocessed.", topic);
+				log.warn("Shutdown partition consumers of topic {}. Some messages left unprocessed.", topic);
 			}
 		} catch (InterruptedException e) {
 			log.error("Interrupted while waiting for shutdown of topic {}", topic, e);
 		}
+		streamProcessor.shutdown();
 	}
 
 	public void run(MessageProcessor processor) {
@@ -78,8 +67,15 @@ public class KafkaListener {
 		Map<String, List<KafkaStream<byte[], byte[]>>> consumerMap = consumer.createMessageStreams(topicCountMap);
 		List<KafkaStream<byte[], byte[]>> streams = consumerMap.get(topic);
 
-		for (KafkaStream stream : streams) {
-			partitionExecutor.submit(new MessageConsumer(stream, processingExecutor, config, processor));
+		log.info("Listening to kafka with {} partition threads", config.getPartitionThreads());
+		for (KafkaStream<byte[], byte[]> stream : streams) {
+			try {
+				partitionExecutor.submit(streamProcessor.buildConsumer(stream, processor));
+			} catch (RejectedExecutionException e) {
+				log.error("Error submitting job to partition executor");
+				throw e;
+			}
+
 		}
 	}
 

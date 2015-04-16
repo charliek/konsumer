@@ -14,6 +14,7 @@ public class ListenerConfig {
 	private final int processingThreads;
 	private final int processingQueueSize;
 	private final int tryCount;
+	private final int shutdownAwaitSeconds;
 	private final boolean daemonThreads;
 	private final String topic;
 	private final Properties props;
@@ -23,6 +24,7 @@ public class ListenerConfig {
 		processingThreads = builder.processingThreads;
 		processingQueueSize = builder.processingQueueSize;
 		tryCount = builder.tryCount;
+		shutdownAwaitSeconds = builder.shutdownAwaitSeconds;
 		topic = builder.topic;
 		props = builder.props;
 		daemonThreads = builder.daemonThreads;
@@ -38,6 +40,10 @@ public class ListenerConfig {
 
 	public int getProcessingQueueSize() {
 		return processingQueueSize;
+	}
+
+	public int getShutdownAwaitSeconds() {
+		return shutdownAwaitSeconds;
 	}
 
 	public int getTryCount() {
@@ -62,9 +68,14 @@ public class ListenerConfig {
 		log.info("topic {} - property 'processingThreads' : {}", topic, processingThreads);
 		log.info("topic {} - property 'processingQueueSize' : {}", topic, processingQueueSize);
 		log.info("topic {} - property 'tryCount' : {}", topic, tryCount);
+		log.info("topic {} - property 'shutdownAwaitSeconds' : {}", topic, shutdownAwaitSeconds);
 		for (Map.Entry e : props.entrySet()) {
 			log.info("topic {} - property '{}' : {}", topic, e.getKey(), e.getValue());
 		}
+	}
+
+	public static Builder builder() {
+		return new Builder();
 	}
 
 	public static class Builder {
@@ -72,6 +83,7 @@ public class ListenerConfig {
 		private int processingThreads = 10;
 		private int processingQueueSize = 20;
 		private int tryCount = 2;
+		private int shutdownAwaitSeconds = 4;
 		private String topic = "";
 		private Properties props = new Properties();
 		private boolean daemonThreads = false;
@@ -105,6 +117,11 @@ public class ListenerConfig {
 
 		public Builder tryCount(int count) {
 			tryCount = count;
+			return this;
+		}
+
+		public Builder shutdownAwaitSeconds(int seconds) {
+			shutdownAwaitSeconds = seconds;
 			return this;
 		}
 

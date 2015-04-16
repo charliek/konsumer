@@ -1,5 +1,9 @@
-package com.charlieknudsen.konsumer;
+package com.charlieknudsen.konsumer.stream;
 
+import com.charlieknudsen.konsumer.ExceptionHandler;
+import com.charlieknudsen.konsumer.ListenerConfig;
+import com.charlieknudsen.konsumer.MessageEnvelope;
+import com.charlieknudsen.konsumer.MessageProcessor;
 import kafka.consumer.ConsumerIterator;
 import kafka.consumer.KafkaStream;
 import kafka.message.MessageAndMetadata;
@@ -10,13 +14,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.Semaphore;
 
-public class MessageConsumer implements Runnable, ExceptionHandler {
-	private final static Logger log = LoggerFactory.getLogger(MessageConsumer.class);
+public class ThreadedMessageConsumer implements Runnable, ExceptionHandler {
+	private final static Logger log = LoggerFactory.getLogger(ThreadedMessageConsumer.class);
 
 	/**
 	 * The kafka stream we will be pulling messages of of.
 	 */
-	private final KafkaStream stream;
+	private final KafkaStream<byte[], byte[]> stream;
 
 	/**
 	 * The executor for message processing.
@@ -38,8 +42,8 @@ public class MessageConsumer implements Runnable, ExceptionHandler {
 	 */
 	private final Semaphore taskSemaphone;
 
-	public MessageConsumer(
-			KafkaStream stream, ExecutorService messageExecutor,
+	public ThreadedMessageConsumer(
+			KafkaStream<byte[], byte[]> stream, ExecutorService messageExecutor,
 			ListenerConfig config, MessageProcessor processor
 	) {
 		this.stream = stream;
@@ -65,13 +69,19 @@ public class MessageConsumer implements Runnable, ExceptionHandler {
 	private void submitTask(MessageEnvelope envelope) throws InterruptedException {
 		try {
 			taskSemaphone.acquire();
+		} catch (InterruptedException e) {
+			log.warn("Interrupted while trying to submit task to consumer.", e);
+			throw e;
+		}
+		try {
 			messageExecutor.submit(envelope);
-		} catch (RejectedExecutionException|InterruptedException e) {
+		} catch (RejectedExecutionException e) {
 			log.error("Error submitting consumer task", e);
 			throw e;
 		}
 	}
 
+	@Override
 	public void run() {
 		ConsumerIterator<byte[], byte[]> it = stream.iterator();
 		while (it.hasNext()) {
