@@ -2,7 +2,7 @@ package com.charlieknudsen.konsumer.stream;
 
 import com.charlieknudsen.konsumer.ListenerConfig;
 import com.charlieknudsen.konsumer.MessageProcessor;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.charlieknudsen.konsumer.util.ThreadFactoryBuilder;
 import kafka.consumer.KafkaStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

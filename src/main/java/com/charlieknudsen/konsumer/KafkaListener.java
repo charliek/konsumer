@@ -2,10 +2,9 @@ package com.charlieknudsen.konsumer;
 
 import com.charlieknudsen.konsumer.stream.StreamProcessor;
 import com.charlieknudsen.konsumer.stream.StreamProcessorFactory;
-import com.charlieknudsen.konsumer.stream.ThreadedStreamProcessor;
 import com.charlieknudsen.konsumer.util.QuietCallable;
 import com.charlieknudsen.konsumer.util.RunUtil;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.charlieknudsen.konsumer.util.ThreadFactoryBuilder;
 import kafka.consumer.Consumer;
 import kafka.consumer.KafkaStream;
 import kafka.javaapi.consumer.ConsumerConnector;
