@@ -5,6 +5,7 @@ findbugs {
 	ignoreFailures = false
 	effort = "max"
 	reportLevel = "low"
+	excludeFilter = file("$rootProject.projectDir/gradle/findbugs/excludeFilter.xml")
 	sourceSets = [sourceSets.main]
 }
 
