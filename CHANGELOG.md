@@ -1,4 +1,4 @@
-## 0.0.4 (unreleased)
+## 0.0.5 (unreleased)
 
 BACKWARDS INCOMPATIBILITIES:
 
@@ -7,6 +7,11 @@ FEATURES:
 IMPROVEMENTS:
 
 BUG FIXES:
+
+## 0.0.4 (April 24, 2015)
+
+IMPROVEMENTS:
+* Removed the guava dependency since it caused dependency issues upstream.
 
 ## 0.0.3 (April 16, 2015)
 
