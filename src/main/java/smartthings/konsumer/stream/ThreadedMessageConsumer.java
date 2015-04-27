@@ -1,16 +1,16 @@
 package smartthings.konsumer.stream;
 
-import smartthings.konsumer.ExceptionHandler;
-import smartthings.konsumer.ListenerConfig;
-import smartthings.konsumer.MessageEnvelope;
-import smartthings.konsumer.MessageProcessor;
 import kafka.consumer.ConsumerIterator;
 import kafka.consumer.KafkaStream;
 import kafka.message.MessageAndMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import smartthings.konsumer.ExceptionHandler;
+import smartthings.konsumer.ListenerConfig;
+import smartthings.konsumer.MessageEnvelope;
+import smartthings.konsumer.MessageProcessor;
 
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executor;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.Semaphore;
 
@@ -25,7 +25,7 @@ public class ThreadedMessageConsumer implements Runnable, ExceptionHandler {
 	/**
 	 * The executor for message processing.
 	 */
-	private final ExecutorService messageExecutor;
+	private final Executor messageExecutor;
 
 	/**
 	 * Configuration of this listener.
@@ -43,7 +43,7 @@ public class ThreadedMessageConsumer implements Runnable, ExceptionHandler {
 	private final Semaphore taskSemaphone;
 
 	public ThreadedMessageConsumer(
-			KafkaStream<byte[], byte[]> stream, ExecutorService messageExecutor,
+			KafkaStream<byte[], byte[]> stream, Executor messageExecutor,
 			ListenerConfig config, MessageProcessor processor
 	) {
 		this.stream = stream;
@@ -74,7 +74,7 @@ public class ThreadedMessageConsumer implements Runnable, ExceptionHandler {
 			throw e;
 		}
 		try {
-			messageExecutor.submit(envelope);
+			messageExecutor.execute(envelope);
 		} catch (RejectedExecutionException e) {
 			log.error("Error submitting consumer task", e);
 			throw e;
@@ -99,7 +99,7 @@ public class ThreadedMessageConsumer implements Runnable, ExceptionHandler {
 	@Override
 	public void handleException(MessageEnvelope msg, Throwable t) {
 		log.warn("Exception when processing message", t);
-		if (msg.getTryCount() < config.getTryCount()) {
+		if (msg.getTryCount() <= config.getTryCount()) {
 			try {
 				submitTask(msg);
 			} catch (Exception e) {

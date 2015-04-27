@@ -33,10 +33,10 @@ configurations.all {
 			details.useVersion groovyVersion
 		}
 		if (details.requested.name == 'slf4j-log4j12') {
-			details.useVersion slf4jVersion
+			details.useTarget "org.slf4j:log4j-over-slf4j:${slf4jVersion}"
 		}
 		if (details.requested.name == 'log4j') {
-			details.useTarget "org.slf4j:slf4j-log4j12:${slf4jVersion}"
+			details.useTarget "org.slf4j:log4j-over-slf4j:${slf4jVersion}"
 		}
 	}
 }
