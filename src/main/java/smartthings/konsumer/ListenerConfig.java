@@ -82,7 +82,7 @@ public class ListenerConfig {
 		private int partitionThreads = 1;
 		private int processingThreads = 10;
 		private int processingQueueSize = 20;
-		private int tryCount = 2;
+		private int tryCount = 1;
 		private int shutdownAwaitSeconds = 4;
 		private String topic = "";
 		private Properties props = new Properties();
