@@ -1,7 +1,7 @@
-package com.charlieknudsen.konsumer.example
+package smartthings.konsumer.example
 
-import com.charlieknudsen.konsumer.KafkaListener
-import com.charlieknudsen.konsumer.ListenerConfig
+import smartthings.konsumer.KafkaListener
+import smartthings.konsumer.ListenerConfig
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 

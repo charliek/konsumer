@@ -1,4 +1,4 @@
-package com.charlieknudsen.konsumer;
+package smartthings.konsumer;
 
 import kafka.message.MessageAndMetadata;
 import org.slf4j.Logger;

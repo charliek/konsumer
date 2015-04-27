@@ -1,9 +1,9 @@
-package com.charlieknudsen.konsumer.stream;
+package smartthings.konsumer.stream;
 
-import com.charlieknudsen.konsumer.ExceptionHandler;
-import com.charlieknudsen.konsumer.ListenerConfig;
-import com.charlieknudsen.konsumer.MessageEnvelope;
-import com.charlieknudsen.konsumer.MessageProcessor;
+import smartthings.konsumer.ExceptionHandler;
+import smartthings.konsumer.ListenerConfig;
+import smartthings.konsumer.MessageEnvelope;
+import smartthings.konsumer.MessageProcessor;
 import kafka.consumer.ConsumerIterator;
 import kafka.consumer.KafkaStream;
 import kafka.message.MessageAndMetadata;

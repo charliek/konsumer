@@ -1,6 +1,6 @@
-package com.charlieknudsen.konsumer.stream;
+package smartthings.konsumer.stream;
 
-import com.charlieknudsen.konsumer.ListenerConfig;
+import smartthings.konsumer.ListenerConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

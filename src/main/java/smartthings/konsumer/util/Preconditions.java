@@ -1,4 +1,4 @@
-package com.charlieknudsen.konsumer.util;
+package smartthings.konsumer.util;
 
 import javax.annotation.Nullable;
 

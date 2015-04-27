@@ -1,6 +1,6 @@
-package com.charlieknudsen.konsumer.stream;
+package smartthings.konsumer.stream;
 
-import com.charlieknudsen.konsumer.MessageProcessor;
+import smartthings.konsumer.MessageProcessor;
 import kafka.consumer.ConsumerIterator;
 import kafka.consumer.KafkaStream;
 import kafka.message.MessageAndMetadata;

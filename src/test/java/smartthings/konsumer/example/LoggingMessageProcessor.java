@@ -1,6 +1,6 @@
-package com.charlieknudsen.konsumer.example;
+package smartthings.konsumer.example;
 
-import com.charlieknudsen.konsumer.MessageProcessor;
+import smartthings.konsumer.MessageProcessor;
 import kafka.message.MessageAndMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

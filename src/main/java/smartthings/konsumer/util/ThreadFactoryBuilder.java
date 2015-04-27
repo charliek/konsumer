@@ -1,11 +1,11 @@
-package com.charlieknudsen.konsumer.util;
+package smartthings.konsumer.util;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static com.charlieknudsen.konsumer.util.Preconditions.checkArgument;
-import static com.charlieknudsen.konsumer.util.Preconditions.checkNotNull;
+import static smartthings.konsumer.util.Preconditions.checkArgument;
+import static smartthings.konsumer.util.Preconditions.checkNotNull;
 
 /**
  * A ThreadFactory builder, providing any combination of these features:

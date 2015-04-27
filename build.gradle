@@ -13,7 +13,7 @@ apply plugin: 'maven-publish'
 apply from: file('gradle/convention.gradle')
 apply from: file('gradle/publish.gradle')
 
-group 'com.charlieknudsen'
+group 'smartthings'
 
 repositories {
     mavenLocal()

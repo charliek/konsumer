@@ -1,6 +1,6 @@
-package com.charlieknudsen.konsumer.stream
+package smartthings.konsumer.stream
 
-import com.charlieknudsen.konsumer.ListenerConfig
+import smartthings.konsumer.ListenerConfig
 import spock.lang.Specification
 import spock.lang.Unroll
 
