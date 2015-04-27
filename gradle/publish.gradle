@@ -82,7 +82,7 @@ bintray {
 	publish = true
 	pkg {
 		repo = 'maven'
-		name = 'com.charlieknudsen.konsumer'
+		name = 'smartthings.konsumer'
 		licenses = ['Apache-2.0']
 		desc = 'Opinionated kafka consumer'
 		labels = ['kafka']
