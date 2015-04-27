@@ -1,12 +1,15 @@
-## 0.0.5 (unreleased)
+## 0.0.5 (April 27, 2015)
 
 BACKWARDS INCOMPATIBILITIES:
-
-FEATURES:
+* Moved from com.charlieknudsen to smartthings package
+* Changed maven identifier to smarthings:konsumer
+* Default try count set to 1 (no retries by default)
 
 IMPROVEMENTS:
+* Added retries for simple message consumer
 
 BUG FIXES:
+* Fix bug where retries were not happening on ThreadedMessageConsumer
 
 ## 0.0.4 (April 24, 2015)
 
