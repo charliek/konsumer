@@ -21,7 +21,7 @@ repositories {
 }
 
 dependencies {
-    compile 'org.apache.kafka:kafka_2.10:0.8.2.0'
+    compile 'org.apache.kafka:kafka_2.10:0.8.2.1'
     compile "org.slf4j:slf4j-api:${slf4jVersion}"
     compile 'com.google.code.findbugs:jsr305:3.0.0'
 
