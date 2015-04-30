@@ -1,4 +1,4 @@
-## 0.0.6 (unreleased)
+## 0.0.7 (unreleased)
 
 BACKWARDS INCOMPATIBILITIES:
 
@@ -7,6 +7,11 @@ FEATURES:
 IMPROVEMENTS:
 
 BUG FIXES:
+
+## 0.0.6 (April 30, 2015)
+
+IMPROVEMENTS:
+* Updated kafka producer library to kafka_2.10:0.8.2.1
 
 ## 0.0.5 (April 27, 2015)
 
