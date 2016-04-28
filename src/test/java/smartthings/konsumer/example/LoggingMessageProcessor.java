@@ -12,8 +12,12 @@ public class LoggingMessageProcessor implements MessageProcessor {
 
 	@Override
 	public void processMessage(MessageAndMetadata<byte[], byte[]> bytes) throws Exception {
-		log.warn("Thread {} - Got message - {}",
-				 Thread.currentThread().getName(),
-				 new String(bytes.message(), StandardCharsets.UTF_8));
+		String content = new String(bytes.message(), StandardCharsets.UTF_8);
+		if ("FAIL".equals(content)) {
+			throw new RuntimeException("Failed to process message");
+		} else {
+			log.warn("Thread {} - Got message - {}",
+				Thread.currentThread().getName(), content);
+		}
 	}
 }

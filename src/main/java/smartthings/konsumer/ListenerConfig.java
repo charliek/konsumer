@@ -13,7 +13,6 @@ public class ListenerConfig {
 	private final int partitionThreads;
 	private final int processingThreads;
 	private final int processingQueueSize;
-	private final int tryCount;
 	private final int shutdownAwaitSeconds;
 	private final boolean daemonThreads;
 	private final String topic;
@@ -23,7 +22,6 @@ public class ListenerConfig {
 		partitionThreads = builder.partitionThreads;
 		processingThreads = builder.processingThreads;
 		processingQueueSize = builder.processingQueueSize;
-		tryCount = builder.tryCount;
 		shutdownAwaitSeconds = builder.shutdownAwaitSeconds;
 		topic = builder.topic;
 		props = builder.props;
@@ -46,10 +44,6 @@ public class ListenerConfig {
 		return shutdownAwaitSeconds;
 	}
 
-	public int getTryCount() {
-		return tryCount;
-	}
-
 	public String getTopic() {
 		return topic;
 	}
@@ -67,7 +61,6 @@ public class ListenerConfig {
 		log.info("topic {} - property 'partitionThreads' : {}", topic, partitionThreads);
 		log.info("topic {} - property 'processingThreads' : {}", topic, processingThreads);
 		log.info("topic {} - property 'processingQueueSize' : {}", topic, processingQueueSize);
-		log.info("topic {} - property 'tryCount' : {}", topic, tryCount);
 		log.info("topic {} - property 'shutdownAwaitSeconds' : {}", topic, shutdownAwaitSeconds);
 		for (Map.Entry e : props.entrySet()) {
 			log.info("topic {} - property '{}' : {}", topic, e.getKey(), e.getValue());
@@ -82,7 +75,6 @@ public class ListenerConfig {
 		private int partitionThreads = 1;
 		private int processingThreads = 10;
 		private int processingQueueSize = 20;
-		private int tryCount = 1;
 		private int shutdownAwaitSeconds = 4;
 		private String topic = "";
 		private Properties props = new Properties();
@@ -112,11 +104,6 @@ public class ListenerConfig {
 
 		public Builder processingQueueSize(int size) {
 			processingQueueSize = size;
-			return this;
-		}
-
-		public Builder tryCount(int count) {
-			tryCount = count;
 			return this;
 		}
 

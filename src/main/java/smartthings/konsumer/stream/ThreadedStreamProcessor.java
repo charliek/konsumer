@@ -1,7 +1,8 @@
 package smartthings.konsumer.stream;
 
 import smartthings.konsumer.ListenerConfig;
-import smartthings.konsumer.MessageProcessor;
+import smartthings.konsumer.circuitbreaker.CircuitBreaker;
+import smartthings.konsumer.filterchain.MessageFilterChain;
 import smartthings.konsumer.util.ThreadFactoryBuilder;
 import kafka.consumer.KafkaStream;
 import org.slf4j.Logger;
@@ -24,8 +25,9 @@ public class ThreadedStreamProcessor implements StreamProcessor {
 	}
 
 	@Override
-	public ThreadedMessageConsumer buildConsumer(KafkaStream<byte[], byte[]> stream, MessageProcessor processor) {
-		return new ThreadedMessageConsumer(stream, processingExecutor, config, processor);
+	public ThreadedMessageConsumer buildConsumer(KafkaStream<byte[], byte[]> stream, MessageFilterChain filterChain,
+												 CircuitBreaker circuitBreaker) {
+		return new ThreadedMessageConsumer(stream, processingExecutor, config, filterChain, circuitBreaker);
 	}
 
 	private ExecutorService buildConsumerExecutor() {

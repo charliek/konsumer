@@ -15,7 +15,7 @@ public class StreamProcessorFactory {
 	public StreamProcessor getProcessor() {
 		if (config.getPartitionThreads() >= config.getProcessingThreads()) {
 			log.info("Building a single threaded stream processor");
-			return new SingleStreamProcessor(config.getTryCount());
+			return new SingleStreamProcessor();
 		} else {
 			log.info("Building a threaded stream processor with {} threads", config.getProcessingThreads());
 			return new ThreadedStreamProcessor(config);

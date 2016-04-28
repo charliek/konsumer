@@ -5,16 +5,15 @@ import kafka.consumer.KafkaStream;
 import kafka.message.MessageAndMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import smartthings.konsumer.ExceptionHandler;
 import smartthings.konsumer.ListenerConfig;
-import smartthings.konsumer.MessageEnvelope;
-import smartthings.konsumer.MessageProcessor;
+import smartthings.konsumer.circuitbreaker.CircuitBreaker;
+import smartthings.konsumer.filterchain.MessageFilterChain;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.Semaphore;
 
-public class ThreadedMessageConsumer implements Runnable, ExceptionHandler {
+public class ThreadedMessageConsumer implements Runnable {
 	private final static Logger log = LoggerFactory.getLogger(ThreadedMessageConsumer.class);
 
 	/**
@@ -33,40 +32,33 @@ public class ThreadedMessageConsumer implements Runnable, ExceptionHandler {
 	private final ListenerConfig config;
 
 	/**
-	 * The class that will actually to do the work of processing the messages.
+	 * Chain of filters followed by the message processor.
 	 */
-	private final MessageProcessor processor;
+	private final MessageFilterChain filterChain;
 
 	/**
 	 * Semaphone used so we don't consumer messages faster than we can process them.
 	 */
 	private final Semaphore taskSemaphone;
 
+	/**
+	 * Circuit breaker to stop processing of messages.
+	 */
+	private final CircuitBreaker circuitBreaker;
+
 	public ThreadedMessageConsumer(
-			KafkaStream<byte[], byte[]> stream, Executor messageExecutor,
-			ListenerConfig config, MessageProcessor processor
+			KafkaStream<byte[], byte[]> stream, Executor messageExecutor, ListenerConfig config,
+			MessageFilterChain filterChain, CircuitBreaker circuitBreaker
 	) {
 		this.stream = stream;
 		this.messageExecutor = messageExecutor;
 		this.config = config;
-		this.processor = decorateProcessor(processor);
+		this.filterChain = filterChain;
 		this.taskSemaphone = new Semaphore(config.getProcessingThreads());
+		this.circuitBreaker = circuitBreaker;
 	}
 
-	private MessageProcessor decorateProcessor(final MessageProcessor processor) {
-		return new MessageProcessor() {
-			@Override
-			public void processMessage(MessageAndMetadata<byte[], byte[]> message) throws Exception {
-				try {
-					processor.processMessage(message);
-				} finally {
-					taskSemaphone.release();
-				}
-			}
-		};
-	}
-
-	private void submitTask(MessageEnvelope envelope) throws InterruptedException {
+	private void submitTask(final MessageAndMetadata<byte[], byte[]> messageAndMetadata) throws InterruptedException {
 		try {
 			taskSemaphone.acquire();
 		} catch (InterruptedException e) {
@@ -74,7 +66,18 @@ public class ThreadedMessageConsumer implements Runnable, ExceptionHandler {
 			throw e;
 		}
 		try {
-			messageExecutor.execute(envelope);
+			messageExecutor.execute(new Runnable() {
+				@Override
+				public void run() {
+					try {
+						filterChain.handle(messageAndMetadata);
+					} catch (Exception e) {
+						handleException(messageAndMetadata, e);
+					} finally {
+						taskSemaphone.release();
+					}
+				}
+			});
 		} catch (RejectedExecutionException e) {
 			log.error("Error submitting consumer task", e);
 			throw e;
@@ -85,9 +88,10 @@ public class ThreadedMessageConsumer implements Runnable, ExceptionHandler {
 	public void run() {
 		ConsumerIterator<byte[], byte[]> it = stream.iterator();
 		while (it.hasNext()) {
+			circuitBreaker.blockIfOpen();
 			MessageAndMetadata<byte[], byte[]> messageAndMetadata = it.next();
 			try {
-				submitTask(new MessageEnvelope(processor, this, messageAndMetadata));
+				submitTask(messageAndMetadata);
 			} catch (Exception e) {
 				log.error("Unexpected exception occurred during message processing. Exiting.", e);
 				break;
@@ -96,15 +100,7 @@ public class ThreadedMessageConsumer implements Runnable, ExceptionHandler {
 		log.warn("Shutting down listening thread");
 	}
 
-	@Override
-	public void handleException(MessageEnvelope msg, Throwable t) {
+	public void handleException(MessageAndMetadata<byte[], byte[]> messageAndMetadata, Throwable t) {
 		log.warn("Exception when processing message", t);
-		if (msg.getTryCount() <= config.getTryCount()) {
-			try {
-				submitTask(msg);
-			} catch (Exception e) {
-				log.error("Unexpected exception occurred trying to re-queue a failed message. Aborting retry.", e);
-			}
-		}
 	}
 }
