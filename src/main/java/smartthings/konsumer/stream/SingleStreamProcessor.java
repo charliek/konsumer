@@ -1,23 +1,15 @@
 package smartthings.konsumer.stream;
 
-import smartthings.konsumer.MessageProcessor;
 import kafka.consumer.KafkaStream;
+import smartthings.konsumer.circuitbreaker.CircuitBreaker;
+import smartthings.konsumer.filterchain.MessageFilterChain;
 
 public class SingleStreamProcessor implements StreamProcessor {
-	private static final int DEFAULT_TRY_COUNT = 1;
-	private final int tryCount;
-
-	public SingleStreamProcessor() {
-		this(DEFAULT_TRY_COUNT);
-	}
-
-	public SingleStreamProcessor(int tryCount) {
-		this.tryCount = tryCount;
-	}
 
 	@Override
-	public Runnable buildConsumer(KafkaStream<byte[], byte[]> stream, MessageProcessor processor) {
-		return new SingleMessageConsumer(stream, processor, tryCount);
+	public Runnable buildConsumer(KafkaStream<byte[], byte[]> stream, MessageFilterChain filterChain,
+								  CircuitBreaker circuitBreaker) {
+		return new SingleMessageConsumer(stream, filterChain, circuitBreaker);
 	}
 
 	@Override

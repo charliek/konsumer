@@ -1,5 +1,10 @@
 package smartthings.konsumer;
 
+import smartthings.konsumer.circuitbreaker.CircuitBreaker;
+import smartthings.konsumer.circuitbreaker.SimpleCircuitBreaker;
+import smartthings.konsumer.event.KonsumerEventListener;
+import smartthings.konsumer.filterchain.MessageFilter;
+import smartthings.konsumer.filterchain.MessageFilterChain;
 import smartthings.konsumer.stream.StreamProcessor;
 import smartthings.konsumer.stream.StreamProcessorFactory;
 import smartthings.konsumer.util.QuietCallable;
@@ -24,6 +29,7 @@ public class KafkaListener {
 	private final StreamProcessor streamProcessor;
 	private final String topic;
 	private final ListenerConfig config;
+	private final CircuitBreaker circuitBreaker;
 
 	public KafkaListener(ListenerConfig config) {
 		this.config = config;
@@ -34,6 +40,7 @@ public class KafkaListener {
 		consumer = Consumer.createJavaConsumerConnector(config.getConsumerConfig());
 		topic = config.getTopic();
 		streamProcessor = new StreamProcessorFactory(config).getProcessor();
+		circuitBreaker = new SimpleCircuitBreaker();
 	}
 
 	private ExecutorService buildPartitionExecutor() {
@@ -60,7 +67,8 @@ public class KafkaListener {
 		streamProcessor.shutdown();
 	}
 
-	public void run(MessageProcessor processor) {
+	public void run(MessageProcessor processor, MessageFilter... filters) {
+		MessageFilterChain filterChain = new MessageFilterChain(circuitBreaker, processor, filters);
 		Map<String, Integer> topicCountMap = new HashMap<>();
 		topicCountMap.put(topic, config.getPartitionThreads());
 		Map<String, List<KafkaStream<byte[], byte[]>>> consumerMap = consumer.createMessageStreams(topicCountMap);
@@ -69,21 +77,35 @@ public class KafkaListener {
 		log.info("Listening to kafka with {} partition threads", config.getPartitionThreads());
 		for (KafkaStream<byte[], byte[]> stream : streams) {
 			try {
-				partitionExecutor.submit(streamProcessor.buildConsumer(stream, processor));
+				partitionExecutor.submit(streamProcessor.buildConsumer(stream, filterChain, circuitBreaker));
 			} catch (RejectedExecutionException e) {
 				log.error("Error submitting job to partition executor");
 				throw e;
 			}
-
 		}
+	}
+
+	public void registerEventListener(KonsumerEventListener listener) {
+		circuitBreaker.addListener(listener);
+	}
+
+	public void halt() {
+		circuitBreaker.open(this.getClass().toString());
+	}
+
+	public void resume() {
+		circuitBreaker.conditionalClose(this.getClass().toString());
 	}
 
 	/**
 	 * Run and then block the calling thread until shutdown. In place to make it easy to
 	 * consume in a main method and still exit cleanly.
+	 * @param processor The handler that will be handle all messages consumed.
+	 * @param filters An ordered list of the filters that will be applied to all messages consumed before they
+	 *                are passed to the processor.
 	 */
-	public void runAndBlock(MessageProcessor processor) {
-		run(processor);
+	public void runAndBlock(MessageProcessor processor, MessageFilter... filters) {
+		run(processor, filters);
 		RunUtil.blockForShutdown(new QuietCallable() {
 			@Override
 			public void call() {
